@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Configuratore PC Workstation - Con Prezzi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #000;
+      color: #f0f4f8;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Canvas per le particelle */
+    #tsparticles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -2;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      background: rgba(18, 22, 33, 0.85);
+      backdrop-filter: blur(10px);
+      padding: 36px;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(64, 100, 180, 0.3);
+      position: relative;
+      z-index: 2;
+    }
+
+    h1 {
+      text-align: center;
+      color: #4fc3f7;
+      margin-bottom: 30px;
+      font-weight: 700;
+      font-size: 28px;
+      position: relative;
+    }
+
+    h1::after {
+      content: '';
+      display: block;
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(to right, #00c853, #64ffda);
+      margin: 12px auto;
+      border-radius: 2px;
+    }
+
+    .form-group {
+      margin-bottom: 26px;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: #bbdefb;
+      font-size: 16px;
+    }
+
+    label::before {
+      margin-right: 10px;
+      font-size: 18px;
+    }
+
+    /* Icone */
+    #cpu + label::before { content: "🧠"; }
+    #motherboard + label::before { content: "🔌"; }
+    #gpu + label::before { content: "🎨"; }
+    #psu + label::before { content: "⚡"; }
+    #case + label::before { content: "📦"; }
+    #ram + label::before { content: "💾"; }
+    #nvme + label::before { content: "🚀"; }
+    #sata + label::before { content: "🗃️"; }
+
+    select {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid #3a4a6b;
+      border-radius: 12px;
+      font-size: 16px;
+      background-color: rgba(25, 30, 45, 0.9);
+      color: #e0f7fa;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: #4fc3f7;
+      box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.25);
+    }
+
+    option {
+      background-color: #1a2332;
+      color: #e0f7fa;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #00c853, #00bfa5);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 200, 83, 0.3);
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #00b049, #00a08f);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 200, 83, 0.45);
+    }
+
+    .summary {
+      background: rgba(15, 23, 42, 0.8);
+      padding: 26px;
+      border-radius: 16px;
+      margin-top: 30px;
+      display: none;
+      border: 1px solid rgba(76, 175, 80, 0.3);
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .summary h2 {
+      margin-top: 0;
+      color: #64ffda;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .summary h2::before {
+      content: "✅";
+    }
+
+    .summary p {
+      margin: 10px 0;
+      font-size: 16px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .summary p strong {
+      color: #bbdefb;
+    }
+
+    .total {
+      font-weight: 800;
+      font-size: 24px;
+      color: #ff7043;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px dashed rgba(100, 255, 218, 0.3);
+      text-align: right;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        margin: 20px;
+        padding: 24px;
+      }
+      h1 { font-size: 24px; }
+      select { padding: 12px; font-size: 15px; }
+      .summary p { flex-direction: column; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Canvas per tsParticles -->
+  <div id="tsparticles"></div>
+
+  <div class="container">
+    <h1>Configura la tua Workstation Intel</h1>
+
+    <form id="pcConfigForm">
+      <div class="form-group">
+        <label for="cpu">Processore (CPU)</label>
+        <select id="cpu" name="cpu" required>
+          <option value="">Seleziona un processore</option>
+          <option value="i5-12400|169">Intel Core i5-12400 (€169)</option>
+          <option value="i5-13600K|329">Intel Core i5-13600K (€329)</option>
+          <option value="i5-14600K|349">Intel Core i5-14600K (€349)</option>
+          <option value="i7-12700K|319">Intel Core i7-12700K (€319)</option>
+          <option value="i7-13700K|429">Intel Core i7-13700K (€429)</option>
+          <option value="i7-14700K|459">Intel Core i7-14700K (€459)</option>
+          <option value="i9-12900K|499">Intel Core i9-12900K (€499)</option>
+          <option value="i9-13900K|599">Intel Core i9-13900K (€599)</option>
+          <option value="i9-14900K|629">Intel Core i9-14900K (€629)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="motherboard">Scheda madre (LGA1700)</label>
+        <select id="motherboard" name="motherboard" required>
+          <option value="">Seleziona una scheda madre</option>
+          <option value="asus-prime-b660m|110">ASUS Prime B660M-A (€110)</option>
+          <option value="msi-pro-b760m|140">MSI PRO B760M-A WIFI (€140)</option>
+          <option value="gigabyte-z790-aorus|260">Gigabyte Z790 Aorus Elite AX (€260)</option>
+          <option value="asrock-z790-steel|230">ASRock Z790 Steel Legend (€230)</option>
+          <option value="asus-rog-strix-z790|350">ASUS ROG Strix Z790-E (€350)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="gpu">Scheda video (GPU)</label>
+        <select id="gpu" name="gpu" required>
+          <option value="">Seleziona una scheda video</option>
+          <option value="quadro-rtx-4000|585">NVIDIA Quadro RTX 4000 (€585)</option>
+          <option value="quadro-rtx-5000|930">NVIDIA Quadro RTX 5000 (€930)</option>
+          <option value="quadro-rtx-6000|2020">NVIDIA Quadro RTX 6000 (€2020)</option>
+          <option value="quadro-rtx-8000|3900">NVIDIA Quadro RTX 8000 (€3900)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="psu">Alimentatore (PSU)</label>
+        <select id="psu" name="psu" required>
+          <option value="">Seleziona un alimentatore</option>
+          <option value="corsair-rm650x|100">Corsair RM650x (650W, 80+ Gold) (€100)</option>
+          <option value="seasonic-focus-gx750|130">Seasonic FOCUS GX-750 (750W) (€130)</option>
+          <option value="evga-supernova-850|160">EVGA SuperNOVA 850 G6 (€160)</option>
+          <option value="bequiet-dark-power-12|220">be quiet! Dark Power 12 1000W (€220)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="case">Case</label>
+        <select id="case" name="case" required>
+          <option value="">Seleziona un case</option>
+          <option value="sharkoon-vs8-nero|52.91">Sharkoon VS8 Midi Tower Nero (€52,91)</option>
+          <option value="sharkoon-vs8-bianco|72.37">Sharkoon VS8 RGB Midi Tower Bianco (€72,37)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="ram">RAM</label>
+        <select id="ram" name="ram" required>
+          <option value="">Seleziona la capacità RAM</option>
+          <option value="16gb-ddr4|45">16 GB DDR4 3200MHz (€45)</option>
+          <option value="32gb-ddr4|80">32 GB DDR4 3200MHz (€80)</option>
+          <option value="32gb-ddr5|110">32 GB DDR5 6000MHz (€110)</option>
+          <option value="64gb-ddr5|200">64 GB DDR5 6000MHz (€200)</option>
+          <option value="128gb-ddr5|380">128 GB DDR5 6000MHz (€380)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="nvme">Disco NVMe principale (WD_BLACK SN850X)</label>
+        <select id="nvme" name="nvme" required>
+          <option value="">Seleziona capacità</option>
+          <option value="wd-sn850x-1tb|103.98">1 TB (€103,98)</option>
+          <option value="wd-sn850x-2tb|166.26">2 TB (€166,26)</option>
+          <option value="wd-sn850x-4tb|295.00">4 TB (€295,00)</option>
+          <option value="wd-sn850x-8tb|637.80">8 TB (€637,80)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="sata">Disco secondario (Lexar NS100 SATA)</label>
+        <select id="sata" name="sata">
+          <option value="">Nessuno (opzionale)</option>
+          <option value="lexar-128gb|14.99">128 GB (€14,99)</option>
+          <option value="lexar-256gb|20.99">256 GB (€20,99)</option>
+          <option value="lexar-512gb|35.99">512 GB (€35,99)</option>
+          <option value="lexar-1tb|72.99">1 TB (€72,99)</option>
+          <option value="lexar-2tb|117.92">2 TB (€117,92)</option>
+        </select>
+      </div>
+
+      <button type="submit">Calcola Totale</button>
+    </form>
+
+    <div id="summary" class="summary">
+      <h2>Configurazione selezionata</h2>
+      <p><strong>Processore:</strong> <span id="summary-cpu"></span> — <span id="price-cpu"></span></p>
+      <p><strong>Scheda madre:</strong> <span id="summary-mobo"></span> — <span id="price-mobo"></span></p>
+      <p><strong>Scheda video:</strong> <span id="summary-gpu"></span> — <span id="price-gpu"></span></p>
+      <p><strong>Alimentatore:</strong> <span id="summary-psu"></span> — <span id="price-psu"></span></p>
+      <p><strong>Case:</strong> <span id="summary-case"></span> — <span id="price-case"></span></p>
+      <p><strong>RAM:</strong> <span id="summary-ram"></span> — <span id="price-ram"></span></p>
+      <p><strong>Disco NVMe:</strong> <span id="summary-nvme"></span> — <span id="price-nvme"></span></p>
+      <p><strong>Disco SATA:</strong> <span id="summary-sata"></span> — <span id="price-sata"></span></p>
+      <div class="total">Totale: <span id="total-price">€0</span></div>
+    </div>
+  </div>
+
+  <!-- Caricamento di tsParticles dalla CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+
+  <script>
+    // Configurazione delle particelle dal tuo file
+    tsParticles.load("tsparticles", {
+      fpsLimit: 60,
+      particles: {
+        number: { value: 80, density: { enable: true, area: 800 } },
+        color: { value: "#64ffda" },
+        shape: { type: "circle" },
+        opacity: { value: 0.3, random: true, anim: { enable: true, speed: 0.5, opacity_min: 0.1 } },
+        size: { value: 2, random: true },
+        move: {
+          enable: true,
+          speed: 1,
+          direction: "none",
+          random: true,
+          straight: false,
+          outModes: { default: "out" }
+        }
+      },
+      interactivity: {
+        detectsOn: "canvas",
+        events: {
+          onHover: { enable: true, mode: "repulse" },
+          onClick: { enable: true, mode: "push" },
+          resize: true
+        },
+        modes: {
+          repulse: { distance: 100, duration: 0.4 },
+          push: { quantity: 2 }
+        }
+      },
+      detectRetina: true
+    });
+
+    // Logica del form (invariata)
+    document.getElementById('pcConfigForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      function parseOption(selectId, isRequired = false) {
+        const select = document.getElementById(selectId);
+        const selectedOption = select.options[select.selectedIndex];
+        if (!selectedOption.value) {
+          return isRequired ? { name: 'Obbligatorio!', price: 0 } : { name: 'Nessuno', price: 0 };
+        }
+
+        const text = selectedOption.text;
+        const value = selectedOption.value;
+        const priceStr = value.split('|')[1].replace(',', '.');
+        const price = parseFloat(priceStr) || 0;
+        const name = text.replace(/ \(€[\d,]+\)/, '');
+        return { name, price };
+      }
+
+      const cpu = parseOption('cpu', true);
+      const mobo = parseOption('motherboard', true);
+      const gpu = parseOption('gpu', true);
+      const psu = parseOption('psu', true);
+      const casePc = parseOption('case', true);
+      const ram = parseOption('ram', true);
+      const nvme = parseOption('nvme', true);
+      const sata = parseOption('sata', false);
+
+      const total = cpu.price + mobo.price + gpu.price + psu.price + casePc.price + ram.price + nvme.price + sata.price;
+
+      function formatPrice(price) {
+        return `€${price.toFixed(2).replace('.', ',')}`;
+      }
+
+      document.getElementById('summary-cpu').textContent = cpu.name;
+      document.getElementById('price-cpu').textContent = formatPrice(cpu.price);
+      document.getElementById('summary-mobo').textContent = mobo.name;
+      document.getElementById('price-mobo').textContent = formatPrice(mobo.price);
+      document.getElementById('summary-gpu').textContent = gpu.name;
+      document.getElementById('price-gpu').textContent = formatPrice(gpu.price);
+      document.getElementById('summary-psu').textContent = psu.name;
+      document.getElementById('price-psu').textContent = formatPrice(psu.price);
+      document.getElementById('summary-case').textContent = casePc.name;
+      document.getElementById('price-case').textContent = formatPrice(casePc.price);
+      document.getElementById('summary-ram').textContent = ram.name;
+      document.getElementById('price-ram').textContent = formatPrice(ram.price);
+      document.getElementById('summary-nvme').textContent = nvme.name;
+      document.getElementById('price-nvme').textContent = formatPrice(nvme.price);
+      document.getElementById('summary-sata').textContent = sata.name;
+      document.getElementById('price-sata').textContent = sata.price > 0 ? formatPrice(sata.price) : '–';
+      document.getElementById('total-price').textContent = formatPrice(total);
+      document.getElementById('summary').style.display = 'block';
+    });
+  </script>
+
+</body>
+</html>
