@@ -1,5 +1,6 @@
-# Fassicomo-Orientamenti-project
+# Fassicomo Orientamenti Project
 Questo repository contiene delle patch per rom di nes a scopo dimostrativo per l salone degli orientamenti di genova
+
 # DISCLAIMER E LIMITAZIONE DI RESPONSABILITÀ
 
 # Oggetto.
